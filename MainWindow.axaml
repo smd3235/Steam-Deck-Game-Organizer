@@ -1,0 +1,110 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SteamDeckGameOrganizer.MainWindow"
+        Width="1280" Height="800" MinWidth="980" MinHeight="650"
+        Title="Steam Deck Game Organizer v1.0">
+  <Grid RowDefinitions="Auto,Auto,*" Margin="20">
+    <Grid ColumnDefinitions="*,Auto">
+      <StackPanel>
+        <TextBlock Classes="kicker" Text="STEAM DECK GAME ORGANIZER" />
+        <TextBlock Text="Command Center" FontSize="27" FontWeight="Bold" />
+        <TextBlock Classes="muted" Text="SCAN → REVIEW → ORGANIZE → DONE  •  native C# / Avalonia" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+        <TextBlock Text="v1.0" FontWeight="Bold" HorizontalAlignment="Right" />
+        <TextBlock x:Name="ConnectionText" Classes="muted" Text="SteamGridDB: checking…" />
+      </StackPanel>
+    </Grid>
+
+    <Border Grid.Row="1" Classes="card" Margin="0,14,0,12" Padding="12">
+      <Grid ColumnDefinitions="*,*,*,Auto" ColumnSpacing="12">
+        <StackPanel><TextBlock Classes="kicker" Text="1  SCAN"/><TextBlock Classes="muted" Text="Discover ZIP / RAR / 7Z archives"/></StackPanel>
+        <StackPanel Grid.Column="1"><TextBlock Classes="kicker" Text="2  REVIEW"/><TextBlock Classes="muted" Text="Verify Steam + category + artwork"/></StackPanel>
+        <StackPanel Grid.Column="2"><TextBlock Classes="kicker" Text="3  ORGANIZE"/><TextBlock Classes="muted" Text="Move only after review"/></StackPanel>
+        <TextBlock Grid.Column="3" VerticalAlignment="Center" Classes="muted" Text="4  DONE"/>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="245,*" ColumnSpacing="12">
+      <Border Classes="card" Padding="14">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="10">
+            <TextBlock FontSize="17" FontWeight="Bold" Text="Setup" />
+            <TextBlock Classes="muted" Text="Archive library" />
+            <TextBox x:Name="LibraryPathBox" />
+            <ComboBox x:Name="RunModeBox" SelectedIndex="0">
+              <ComboBoxItem Content="All Archives" />
+              <ComboBoxItem Content="New Files Only" />
+            </ComboBox>
+            <CheckBox x:Name="PreviewBox" Content="Preview only — move nothing" />
+            <TextBlock Classes="muted" Text="SteamGridDB key (optional)" Margin="0,6,0,0" />
+            <TextBox x:Name="KeyBox" PasswordChar="•" />
+            <Button x:Name="VerifyButton" Content="Verify SteamGridDB" Click="Verify_Click" />
+            <Button Classes="primary" Content="SCAN LIBRARY →" Click="Scan_Click" />
+            <Button x:Name="StopButton" Content="STOP SAFELY" Click="Stop_Click" IsEnabled="False" />
+            <TextBlock x:Name="StatusText" Classes="muted" Text="Ready." TextWrapping="Wrap" />
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+
+      <Grid Grid.Column="1" RowDefinitions="Auto,*">
+        <Border Classes="card" Padding="9" Margin="0,0,0,9">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="9">
+            <TextBlock Text="FILTER" Classes="muted" VerticalAlignment="Center" />
+            <TextBox x:Name="SearchBox" Watermark="Search games…" TextChanged="Search_Changed" />
+            <ComboBox x:Name="FilterBox" SelectedIndex="0" Width="180" SelectionChanged="Filter_Changed">
+              <ComboBoxItem Content="All"/><ComboBoxItem Content="Needs Review"/><ComboBoxItem Content="High Confidence"/><ComboBoxItem Content="Medium Confidence"/><ComboBoxItem Content="Low Confidence"/>
+            </ComboBox>
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="215,*" ColumnSpacing="9">
+          <Border Classes="card" Padding="7">
+            <ScrollViewer x:Name="GameListScroll" VerticalScrollBarVisibility="Auto">
+              <StackPanel x:Name="GameList" Spacing="4" />
+            </ScrollViewer>
+          </Border>
+
+          <Border Grid.Column="1" Classes="card" Padding="14">
+            <ScrollViewer x:Name="DetailsScroll" VerticalScrollBarVisibility="Auto">
+              <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*" RowSpacing="8">
+                <TextBlock x:Name="DetailTitle" FontSize="22" FontWeight="Bold" TextWrapping="Wrap" Text="Select a game" />
+                <TextBlock Grid.Row="1" x:Name="DetailMatch" Classes="muted" TextWrapping="Wrap" />
+                <Grid Grid.Row="2" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                  <Border Background="#111217" CornerRadius="6" Width="235" Height="110">
+                    <Image x:Name="ArtworkImage" Stretch="Uniform" Width="235" Height="110" />
+                  </Border>
+                  <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Top">
+                    <TextBlock x:Name="MetaAppId" Classes="muted" />
+                    <TextBlock x:Name="MetaRelease" Classes="muted" />
+                    <TextBlock x:Name="MetaMode" Classes="muted" TextWrapping="Wrap" />
+                    <TextBlock x:Name="MetaDeveloper" Classes="muted" TextWrapping="Wrap" />
+                    <TextBlock x:Name="MetaPublisher" Classes="muted" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Grid>
+                <TextBlock Grid.Row="3" x:Name="MetaGenres" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="4" x:Name="MetaTags" Classes="muted" TextWrapping="Wrap" />
+                <Grid Grid.Row="5" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                  <TextBlock Text="Category:" Classes="muted" VerticalAlignment="Center" />
+                  <ComboBox x:Name="CategoryBox" Grid.Column="1" SelectionChanged="Category_Changed" />
+                  <TextBlock x:Name="ConfidenceText" Grid.Column="2" Classes="muted" VerticalAlignment="Center" />
+                </Grid>
+                <TextBlock Grid.Row="6" x:Name="EvidenceText" Classes="muted" TextWrapping="Wrap" />
+                <Grid Grid.Row="7" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                  <Button Content="Skip" Click="Skip_Click" />
+                  <Button Grid.Column="1" Content="Open Steam" Click="OpenSteam_Click" />
+                  <Button Grid.Column="2" Content="UNDO LAST RUN" Click="Undo_Click" />
+                  <Button Grid.Column="3" Classes="primary" Content="ORGANIZE REVIEWED GAMES" Click="Organize_Click" />
+                </Grid>
+              </Grid>
+            </ScrollViewer>
+          </Border>
+        </Grid>
+      </Grid>
+    </Grid>
+  </Grid>
+</Window>
+
+<!-- Changelog: v1.0 - Compact single-page Steam Deck Review workspace with narrow game list, wide details, horizontal metadata, independent scrolling, and native dropdown behavior. -->
+
+Changelog: v1.2 - Corrected release packaging convention so the extracted application directory is named "Steam Deck Game Organizer" and the version appears only in the ZIP filename.
