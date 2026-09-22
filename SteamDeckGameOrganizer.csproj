@@ -6,16 +6,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>SteamDeckGameOrganizer</AssemblyName>
     <RootNamespace>SteamDeckGameOrganizer</RootNamespace>
-    <Version>1.2.1</Version>
+    <Version>1.2.2</Version>
     <Platforms>AnyCPU</Platforms>
     <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>false</PublishSingleFile>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <PublishTrimmed>false</PublishTrimmed>
-    <DebugType>none</DebugType>
+    <DebugType>None</DebugType>
     <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.2" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.2" />
@@ -24,6 +25,5 @@
 
   <!-- Changelog: v1.2 - Switches to a self-contained multi-file deployment so logs, cache, config, and artwork can live beside the executable; Linux and Windows RIDs are supported for future porting. -->
   <!-- Changelog: v1.2.1 - Adds a GitHub Actions build/package workflow for reproducible SteamOS linux-x64 self-contained releases; preserves the multi-file deployment layout and executable permission. -->
+  <!-- Changelog: v1.2.2 - Corrects the project XML by moving the release packaging changelog inside the Project element and bumps the project version to match the SteamOS CI package version. -->
 </Project>
-
-Changelog: v1.2 - Corrected release packaging convention so the extracted application directory is named "Steam Deck Game Organizer" and the version appears only in the ZIP filename.
