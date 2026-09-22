@@ -3,60 +3,102 @@ name: Build Steam Deck Game Organizer
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "master" ]
+    branches:
+      - main
+      - master
 
 jobs:
   build-steamos:
+    name: Build SteamOS linux-x64
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Setup .NET 8
+      - name: Set up .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
+      - name: Locate project
+        id: project
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t projects < <(find . -type f -name 'SteamDeckGameOrganizer.csproj' -print)
+          if [[ "${#projects[@]}" -ne 1 ]]; then
+            echo "Expected exactly one SteamDeckGameOrganizer.csproj, found ${#projects[@]}."
+            printf '%s\n' "${projects[@]}"
+            exit 1
+          fi
+          project="${projects[0]}"
+          project_dir="$(dirname "$project")"
+          echo "project=$project" >> "$GITHUB_OUTPUT"
+          echo "project_dir=$project_dir" >> "$GITHUB_OUTPUT"
+          echo "Found project: $project"
+
       - name: Restore
+        shell: bash
+        run: dotnet restore "${{ steps.project.outputs.project }}" -r linux-x64
 
-        run: dotnet restore SteamDeckGameOrganizer.csproj -r linux-x64
-
-      - name: Publish SteamOS linux-x64
-
-        run: >-
-          dotnet publish SteamDeckGameOrganizer.csproj
-          -c Release
-          -r linux-x64
-          --self-contained true
-          --publish-single-file false
-          --publish-trimmed false
-          -o ../publish/Steam\ Deck\ Game\ Organizer
-
-      - name: Set Linux executable permission
-        run: chmod +x "publish/Steam Deck Game Organizer/SteamDeckGameOrganizer"
-
-      - name: Verify published application
+      - name: Publish linux-x64
+        shell: bash
         run: |
-          test -f "publish/Steam Deck Game Organizer/SteamDeckGameOrganizer"
-          test -x "publish/Steam Deck Game Organizer/SteamDeckGameOrganizer"
-          file "publish/Steam Deck Game Organizer/SteamDeckGameOrganizer"
-          test "$(file -b "publish/Steam Deck Game Organizer/SteamDeckGameOrganizer" | grep -c 'ELF 64-bit.*x86-64')" -eq 1
+          set -euo pipefail
+          rm -rf publish
+          dotnet publish "${{ steps.project.outputs.project }}" \
+            -c Release \
+            -r linux-x64 \
+            --self-contained true \
+            --no-restore \
+            -p:PublishSingleFile=false \
+            -p:PublishTrimmed=false \
+            -p:DebugType=None \
+            -o publish
 
-      - name: Create runtime directories
+      - name: Prepare Steam Deck deployment folder
+        shell: bash
         run: |
-          mkdir -p "publish/Steam Deck Game Organizer/logs"
-          mkdir -p "publish/Steam Deck Game Organizer/cache/artwork"
-          mkdir -p "publish/Steam Deck Game Organizer/config"
+          set -euo pipefail
+          rm -rf "Steam Deck Game Organizer"
+          mkdir -p "Steam Deck Game Organizer/logs" \
+                   "Steam Deck Game Organizer/cache/artwork" \
+                   "Steam Deck Game Organizer/config"
+          cp -a publish/. "Steam Deck Game Organizer/"
 
-      - name: Package release
+          # Linux launch permission is part of the deployment package.
+          chmod +x "Steam Deck Game Organizer/SteamDeckGameOrganizer"
+
+          # Create expected runtime directories without overwriting application files.
+          touch "Steam Deck Game Organizer/logs/.gitkeep"
+          touch "Steam Deck Game Organizer/cache/artwork/.gitkeep"
+          touch "Steam Deck Game Organizer/config/.gitkeep"
+
+      - name: Verify Linux executable
+        shell: bash
         run: |
-          cd publish
-          zip -r ../steam_deck_game_organizer_v1.2.1.zip "Steam Deck Game Organizer"
+          set -euo pipefail
+          app="Steam Deck Game Organizer/SteamDeckGameOrganizer"
+          test -f "$app"
+          test -x "$app"
+          file "$app"
+          file "$app" | grep -Eq 'ELF 64-bit.*x86-64|ELF 64-bit.*AMD x86-64'
 
-      - name: Upload release artifact
+      - name: Create release ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          zip_name="steam_deck_game_organizer_v1.2.2-steamos-linux-x64.zip"
+          rm -f "$zip_name"
+          zip -r "$zip_name" "Steam Deck Game Organizer" >/dev/null
+          echo "Created $zip_name"
+
+      - name: Upload Steam Deck build
         uses: actions/upload-artifact@v4
         with:
-          name: steam_deck_game_organizer_v1.2.1
-          path: steam_deck_game_organizer_v1.2.1.zip
+          name: steam-deck-game-organizer-v1.2.2-steamos-linux-x64
+          path: steam_deck_game_organizer_v1.2.2-steamos-linux-x64.zip
           if-no-files-found: error
+
+      # Changelog: v1.2.2 - Rebuilt SteamOS CI workflow to locate the project automatically, remove the invalid hard-coded working directory, publish from either repository-root or nested source layouts, set the Linux executable bit, verify the ELF x86-64 binary, and package the deployment folder.
