@@ -25,8 +25,9 @@
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
   </Application.Styles>
+
+  <!-- Changelog: v1.0 - Steam Deck compact visual theme for the native C# rewrite. -->
+  <!-- Changelog: v1.2 - Corrected release packaging convention so the extracted application directory is named "Steam Deck Game Organizer" and the version appears only in the ZIP filename. -->
+  <!-- Changelog: v1.2.2 - Corrected invalid XML caused by changelog text outside the Application document. -->
+
 </Application>
-
-<!-- Changelog: v1.0 - Steam Deck compact visual theme for the native C# rewrite. -->
-
-Changelog: v1.2 - Corrected release packaging convention so the extracted application directory is named "Steam Deck Game Organizer" and the version appears only in the ZIP filename.
