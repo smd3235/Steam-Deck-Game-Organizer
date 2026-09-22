@@ -19,11 +19,11 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore
-        working-directory: Steam Deck Game Organizer
+
         run: dotnet restore SteamDeckGameOrganizer.csproj -r linux-x64
 
       - name: Publish SteamOS linux-x64
-        working-directory: Steam Deck Game Organizer
+
         run: >-
           dotnet publish SteamDeckGameOrganizer.csproj
           -c Release
