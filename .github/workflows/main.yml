@@ -1,0 +1,62 @@
+name: Build Steam Deck Game Organizer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-steamos:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        working-directory: Steam Deck Game Organizer
+        run: dotnet restore SteamDeckGameOrganizer.csproj -r linux-x64
+
+      - name: Publish SteamOS linux-x64
+        working-directory: Steam Deck Game Organizer
+        run: >-
+          dotnet publish SteamDeckGameOrganizer.csproj
+          -c Release
+          -r linux-x64
+          --self-contained true
+          --publish-single-file false
+          --publish-trimmed false
+          -o ../publish/Steam\ Deck\ Game\ Organizer
+
+      - name: Set Linux executable permission
+        run: chmod +x "publish/Steam Deck Game Organizer/SteamDeckGameOrganizer"
+
+      - name: Verify published application
+        run: |
+          test -f "publish/Steam Deck Game Organizer/SteamDeckGameOrganizer"
+          test -x "publish/Steam Deck Game Organizer/SteamDeckGameOrganizer"
+          file "publish/Steam Deck Game Organizer/SteamDeckGameOrganizer"
+          test "$(file -b "publish/Steam Deck Game Organizer/SteamDeckGameOrganizer" | grep -c 'ELF 64-bit.*x86-64')" -eq 1
+
+      - name: Create runtime directories
+        run: |
+          mkdir -p "publish/Steam Deck Game Organizer/logs"
+          mkdir -p "publish/Steam Deck Game Organizer/cache/artwork"
+          mkdir -p "publish/Steam Deck Game Organizer/config"
+
+      - name: Package release
+        run: |
+          cd publish
+          zip -r ../steam_deck_game_organizer_v1.2.1.zip "Steam Deck Game Organizer"
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: steam_deck_game_organizer_v1.2.1
+          path: steam_deck_game_organizer_v1.2.1.zip
+          if-no-files-found: error
